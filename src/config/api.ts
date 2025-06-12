@@ -60,15 +60,7 @@ export const API_CONFIG = {
     },
     PROFILE: {
       GET: '/api/profile',
-      UPLOAD_PHOTO: '/api/profile/photo',
-      REMOVE_PHOTO: '/api/profile/photo',
       CHANGE_PASSWORD: '/api/profile/password',
-    },
-    FILES: {
-      UPLOAD: '/api/files/upload',
-      GET: (filename: string) => `/api/files/${filename}`,
-      DELETE: (filename: string) => `/api/files/${filename}`,
-      URL: (filename: string) => `/api/files/url/${filename}`,
     },
     SYSTEM: {
       HEALTH: '/api/system/health',

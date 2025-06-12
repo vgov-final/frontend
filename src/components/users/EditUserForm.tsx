@@ -56,7 +56,6 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
             role: userData.role,
             gender: userData.gender,
             birthDate: userData.birthDate,
-            profilePhotoUrl: userData.profilePhotoUrl,
             isActive: userData.isActive
         });
         setErrors({});
@@ -110,7 +109,6 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
                 role: formData.role,
                 gender: formData.gender,
                 birthDate: formData.birthDate,
-                profilePhotoUrl: formData.profilePhotoUrl,
                 isActive: formData.isActive
             };
 
@@ -252,15 +250,6 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
                         {errors.role && <p className="text-sm text-red-600">{errors.role}</p>}
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="profilePhotoUrl">URL ảnh đại diện</Label>
-                        <Input
-                            id="profilePhotoUrl"
-                            value={formData.profilePhotoUrl || ''}
-                            onChange={(e) => handleInputChange('profilePhotoUrl', e.target.value)}
-                            placeholder="Nhập URL ảnh đại diện"
-                        />
-                    </div>
 
                     {errors.submit && (
                         <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">

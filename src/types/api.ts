@@ -41,7 +41,6 @@ export interface User {
   role: 'admin' | 'pm' | 'dev' | 'ba' | 'test';
   gender?: 'male' | 'female' | 'other';
   birthDate?: string;
-  profilePhotoUrl?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -95,7 +94,6 @@ export interface CreateUserRequest {
   role: 'admin' | 'pm' | 'dev' | 'ba' | 'test';
   gender?: 'male' | 'female' | 'other';
   birthDate?: string;
-  profilePhotoUrl?: string;
   isActive?: boolean;
 }
 
@@ -107,7 +105,6 @@ export interface UpdateUserRequest {
   role: 'admin' | 'pm' | 'dev' | 'ba' | 'test';
   gender?: 'male' | 'female' | 'other';
   birthDate?: string;
-  profilePhotoUrl?: string;
   isActive?: boolean;
 }
 

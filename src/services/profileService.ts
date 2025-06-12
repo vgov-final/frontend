@@ -23,20 +23,6 @@ class ProfileService {
     return response.data;
   }
 
-  /**
-   * Upload/update profile photo
-   */
-  async updateProfilePhoto(data: ProfileUpdateRequest): Promise<User> {
-    const response = await apiService.put<User>(API_CONFIG.ENDPOINTS.PROFILE.UPLOAD_PHOTO, data);
-    return response.data;
-  }
-
-  /**
-   * Remove profile photo
-   */
-  async removeProfilePhoto(): Promise<void> {
-    await apiService.delete(API_CONFIG.ENDPOINTS.PROFILE.REMOVE_PHOTO);
-  }
 
   /**
    * Change own password

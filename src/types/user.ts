@@ -6,7 +6,6 @@ export interface User {
     role: string;
     gender: string;
     birthDate: string;
-    profilePhotoUrl?: string;
     isActive: boolean;
     phone?: string;
     position?: string;
@@ -59,7 +58,6 @@ export interface ProfileUpdateRequest {
     fullName?: string;
     gender?: string;
     birthDate?: string;
-    profilePhotoUrl?: string;
 }
 
 export interface PasswordChangeRequest {

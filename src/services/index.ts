@@ -8,10 +8,8 @@ export { workLogService } from './workLogService';
 export { workloadService } from './workloadService';
 export { notificationService } from './notificationService';
 export { profileService } from './profileService';
-export { fileService } from './fileService';
 export { analyticsService } from './analyticsService';
 export { apiService } from './api';
 
 // Export service types for convenience
 export type { ApiResponse, ApiError } from '@/types/api';
-export type { FileUploadResponse } from './fileService';
