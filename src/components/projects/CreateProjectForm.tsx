@@ -295,9 +295,8 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
                                     <SelectValue placeholder="Chọn trạng thái" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value={ProjectStatus.Open}>Mở</SelectItem>
+                                    <SelectItem value={ProjectStatus.Open}>Open</SelectItem>
                                     <SelectItem value={ProjectStatus.InProgress}>Đang thực hiện</SelectItem>
-                                    <SelectItem value={ProjectStatus.Closed}>Hoàn thành</SelectItem>
                                     <SelectItem value={ProjectStatus.Hold}>Tạm dừng</SelectItem>
                                     <SelectItem value={ProjectStatus.Presale}>Presale</SelectItem>
                                 </SelectContent>
