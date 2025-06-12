@@ -62,7 +62,7 @@ export function AppSidebar() {
       <SidebarHeader className="p-4">
         <div className="flex items-center">
           <div className="flex-shrink-0">
-            <img src="/logo.jpg" alt="V-GOV Logo" className="w-10 h-10" />
+            <img src="/logo.png" alt="V-GOV Logo" className="w-10 h-10" />
           </div>
           {!isCollapsed && (
             <div className="ml-3">
