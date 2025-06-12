@@ -17,13 +17,14 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-900 to-blue-800 p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
+      style={{ backgroundImage: "url('/background.jpg')" }}
+    >
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="w-8 h-8 text-white" />
-            </div>
+            <img src="/logo.png" alt="V-GOV Logo" className="w-12 h-12" />
           </div>
           <CardTitle className="text-2xl font-bold">V-GOV</CardTitle>
           <CardDescription>
