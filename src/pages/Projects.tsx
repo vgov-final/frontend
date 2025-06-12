@@ -11,6 +11,7 @@ import CreateProjectForm from '@/components/projects/CreateProjectForm';
 import EditProjectForm from '@/components/projects/EditProjectForm';
 import ProjectEmployeeAssignmentModal from '@/components/projects/ProjectEmployeeAssignmentModal';
 import ProjectDetailModal from '@/components/projects/ProjectDetailModal';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Projects = () => {
@@ -28,7 +29,9 @@ const Projects = () => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const pageSize = 12;
 
   useEffect(() => {
@@ -82,14 +85,22 @@ const Projects = () => {
     setCurrentPage(0); // Reset to first page when filtering
   };
 
-  const handleDeleteProject = async (projectId: number) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa dự án này?')) {
+  const handleDeleteProject = (project: Project) => {
+    setProjectToDelete(project);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteProject = async () => {
+    if (projectToDelete) {
       try {
-        await projectService.deleteProject(projectId);
+        await projectService.deleteProject(projectToDelete.id);
         fetchProjects(); // Refresh the list
       } catch (err) {
         console.error('Error deleting project:', err);
         alert('Không thể xóa dự án. Vui lòng thử lại.');
+      } finally {
+        setShowDeleteModal(false);
+        setProjectToDelete(null);
       }
     }
   };
@@ -276,7 +287,7 @@ const Projects = () => {
                               variant="ghost"
                               size="sm"
                               className="text-red-600 hover:text-red-700"
-                              onClick={() => handleDeleteProject(project.id)}
+                              onClick={() => handleDeleteProject(project)}
                               title="Xóa"
                             >
                               <Trash className="w-4 h-4" />
@@ -402,6 +413,15 @@ const Projects = () => {
           projectId={selectedProject.id}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDeleteProject}
+        title="Xác nhận xóa"
+        description={`Bạn có chắc chắn muốn xóa dự án "${projectToDelete?.projectName}"? Hành động này không thể hoàn tác.`}
+      />
     </div>
   );
 };
