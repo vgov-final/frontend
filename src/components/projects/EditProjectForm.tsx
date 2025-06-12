@@ -63,11 +63,6 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             newErrors.projectName = 'Tên dự án là bắt buộc';
         }
 
-        if (!formData.pmEmail?.trim()) {
-            newErrors.pmEmail = 'Email PM là bắt buộc';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.pmEmail)) {
-            newErrors.pmEmail = 'Email không hợp lệ';
-        }
 
         if (!formData.description?.trim()) {
             newErrors.description = 'Mô tả dự án là bắt buộc';
@@ -107,7 +102,11 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
 
         try {
             setLoading(true);
-            await projectService.updateProject(project.id, formData);
+            const dataToUpdate = {
+                ...formData,
+                pmEmail: project.pmEmail,
+            };
+            await projectService.updateProject(project.id, dataToUpdate);
             onSuccess();
             onOpenChange(false);
         } catch (error: any) {
@@ -165,8 +164,8 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                                 id="pmEmail"
                                 type="email"
                                 value={formData.pmEmail}
-                                onChange={(e) => handleInputChange('pmEmail', e.target.value)}
                                 placeholder="Nhập email PM"
+                                disabled
                             />
                             {errors.pmEmail && <p className="text-sm text-red-600">{errors.pmEmail}</p>}
                         </div>
