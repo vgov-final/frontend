@@ -6,7 +6,8 @@ import {
   UpdateProjectRequest,
   PagedResponse,
   ProjectSearchParams,
-  ProjectMember
+  ProjectMember,
+  UserProjectHistory
 } from '@/types/api';
 
 export interface ProjectMemberRequest {
@@ -162,6 +163,15 @@ class ProjectService {
     }
   }
 
+  async getUserProjectHistory(userId: number): Promise<UserProjectHistory[]> {
+    try {
+      const response = await apiService.get<UserProjectHistory[]>(API_CONFIG.ENDPOINTS.PROJECTS.USER_HISTORY(userId));
+      return response.data;
+    } catch (error) {
+      console.error('Get user project history failed:', error);
+      throw error;
+    }
+  }
 }
 
 export const projectService = new ProjectService();

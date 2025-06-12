@@ -273,3 +273,13 @@ export interface ProjectSearchParams extends PaginationParams {
   startDateTo?: string;
   pmEmail?: string;
 }
+
+// User Project History Type (matching backend /api/projects/my-history response)
+export interface UserProjectHistory {
+  projectId: number;
+  projectName: string;
+  workloadPercentage: number;
+  joinedDate: string;
+  leftDate: string | null;
+  projectStatus: string;
+}

@@ -34,6 +34,9 @@ import { workloadService } from '@/services/workloadService';
 import { projectService } from '@/services/projectService';
 
 // Types
+import { UserProjectHistory } from '@/types/api';
+import { WorkLog } from '@/types/workLog';
+
 interface UserDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -60,16 +63,6 @@ interface UserWorkloadDetails {
   availableCapacity: number;
   activeProjectCount: number;
   isOverloaded: boolean;
-}
-
-interface ProjectAssignment {
-  projectId: number;
-  projectName: string;
-  workloadPercentage: number;
-  role: string;
-  startDate: string;
-  endDate?: string;
-  status: string;
 }
 
 export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProps) {
@@ -100,7 +93,7 @@ export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProp
     data: workLogs,
     isLoading: workLogsLoading,
     error: workLogsError,
-  } = useQuery({
+  } = useQuery<WorkLog[]>({
     queryKey: ['userWorkLogs', userId],
     queryFn: () => {
       const endDate = new Date().toISOString().split('T')[0];
@@ -110,28 +103,16 @@ export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProp
     enabled: isOpen && !!userId,
   });
 
-  // Mock project assignments (since we don't have a direct API for this)
-  // In a real implementation, you would fetch this from the backend
-  const mockProjectAssignments: ProjectAssignment[] = [
-    {
-      projectId: 1,
-      projectName: "Hệ thống quản lý dự án",
-      workloadPercentage: 40,
-      role: "Developer",
-      startDate: "2024-01-01",
-      endDate: "2024-06-30",
-      status: "ACTIVE"
-    },
-    {
-      projectId: 2,
-      projectName: "Ứng dụng di động",
-      workloadPercentage: 30,
-      role: "Lead Developer",
-      startDate: "2024-02-01",
-      endDate: "2024-08-30",
-      status: "ACTIVE"
-    }
-  ];
+  // Fetch user project history
+  const {
+    data: projectHistory,
+    isLoading: projectsLoading,
+    error: projectsError,
+  } = useQuery<UserProjectHistory[]>({
+    queryKey: ['userProjectHistory', userId],
+    queryFn: () => projectService.getUserProjectHistory(userId),
+    enabled: isOpen && !!userId,
+  });
 
   const getInitials = (name: string) => {
     return name
@@ -166,19 +147,20 @@ export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProp
 
   const getStatusColor = (status: string) => {
     const colors = {
-      'ACTIVE': 'bg-green-100 text-green-800',
-      'COMPLETED': 'bg-blue-100 text-blue-800',
-      'ON_HOLD': 'bg-yellow-100 text-yellow-800',
-      'CANCELLED': 'bg-red-100 text-red-800'
+      'inprogress': 'bg-green-100 text-green-800',
+      'closed': 'bg-gray-100 text-gray-800',
+      'hold': 'bg-yellow-100 text-yellow-800',
+      'presale': 'bg-purple-100 text-purple-800',
+      'open': 'bg-blue-100 text-blue-800',
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[status.toLowerCase() as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
-  const calculateWorkLogStats = (logs: any[]) => {
+  const calculateWorkLogStats = (logs: WorkLog[]) => {
     if (!logs || logs.length === 0) {
       return {
         totalHours: 0,
@@ -194,7 +176,7 @@ export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProp
 
     // Find most active project
     const projectHours = logs.reduce((acc, log) => {
-      const projectName = log.projectName || 'Unknown';
+      const projectName = log.project?.name || 'Unknown';
       acc[projectName] = (acc[projectName] || 0) + (log.hoursWorked || 0);
       return acc;
     }, {} as Record<string, number>);
@@ -211,7 +193,7 @@ export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProp
     };
   };
 
-  if (userError || workloadError) {
+  if (userError || workloadError || projectsError) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -239,7 +221,7 @@ export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProp
           </DialogDescription>
         </DialogHeader>
 
-        {userLoading || workloadLoading ? (
+        {userLoading || workloadLoading || projectsLoading ? (
           <div className="space-y-6">
             <div className="flex items-center space-x-4">
               <Skeleton className="h-16 w-16 rounded-full" />
@@ -417,44 +399,59 @@ export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProp
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {mockProjectAssignments.map((assignment) => (
-                        <div key={assignment.projectId} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-semibold text-lg">{assignment.projectName}</h4>
-                            <div className="flex items-center gap-2">
-                              <Badge className={getStatusColor(assignment.status)} variant="secondary">
-                                {assignment.status}
-                              </Badge>
-                              <Badge variant="outline">
-                                {assignment.workloadPercentage}%
-                              </Badge>
+                    {projectsLoading ? (
+                      <div className="space-y-4">
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                      </div>
+                    ) : projectsError ? (
+                      <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>
+                          Không thể tải lịch sử dự án.
+                        </AlertDescription>
+                      </Alert>
+                    ) : !projectHistory || projectHistory.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-8">
+                        <Briefcase className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                        <p>Thành viên này chưa tham gia dự án nào.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {projectHistory.map((project) => (
+                          <div key={project.projectId} className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-semibold text-lg">{project.projectName}</h4>
+                              <div className="flex items-center gap-2">
+                                <Badge className={getStatusColor(project.projectStatus)} variant="secondary">
+                                  {project.projectStatus}
+                                </Badge>
+                                <Badge variant="outline">
+                                  {project.workloadPercentage}%
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="grid gap-2 md:grid-cols-3 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                Tham gia: {formatDate(project.joinedDate)}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                Rời đi: {project.leftDate ? formatDate(project.leftDate) : 'chưa có'}
+                              </div>
+                            </div>
+                            <div className="mt-3">
+                              <div className="flex items-center justify-between text-sm mb-1">
+                                <span>Khối lượng công việc</span>
+                                <span className="font-medium">{project.workloadPercentage}%</span>
+                              </div>
+                              <Progress value={project.workloadPercentage} className="h-2" />
                             </div>
                           </div>
-                          <div className="grid gap-2 md:grid-cols-3 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <User className="h-4 w-4" />
-                              Vai trò: {assignment.role}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              Bắt đầu: {formatDate(assignment.startDate)}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              Kết thúc: {assignment.endDate ? formatDate(assignment.endDate) : 'Chưa xác định'}
-                            </div>
-                          </div>
-                          <div className="mt-3">
-                            <div className="flex items-center justify-between text-sm mb-1">
-                              <span>Khối lượng công việc</span>
-                              <span className="font-medium">{assignment.workloadPercentage}%</span>
-                            </div>
-                            <Progress value={assignment.workloadPercentage} className="h-2" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -543,10 +540,10 @@ export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProp
                           </div>
                         ) : (
                           <div className="space-y-3 max-h-64 overflow-y-auto">
-                            {workLogs.slice(0, 10).map((log: any, index: number) => (
-                              <div key={index} className="border rounded-lg p-3">
+                            {workLogs.slice(0, 10).map((log: WorkLog) => (
+                              <div key={log.id} className="border rounded-lg p-3">
                                 <div className="flex items-center justify-between mb-2">
-                                  <div className="font-medium">{log.projectName || 'Unknown Project'}</div>
+                                  <div className="font-medium">{log.project?.name || 'Unknown Project'}</div>
                                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <Clock className="h-4 w-4" />
                                     {log.hoursWorked}h
