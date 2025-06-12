@@ -5,7 +5,9 @@ export interface Notification {
   message: string;
   notificationType: NotificationType;
   relatedProjectId?: number;
+  relatedProjectName?: string;
   relatedUserId?: number;
+  relatedUserName?: string;
   isRead: boolean;
   createdAt: string;
 }

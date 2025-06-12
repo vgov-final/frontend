@@ -1,12 +1,13 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { 
-  Bell, 
-  Folder, 
-  Users, 
-  AlertTriangle, 
-  Clock, 
+import { Link } from 'react-router-dom';
+import {
+  Bell,
+  Folder,
+  Users,
+  AlertTriangle,
+  Clock,
   Settings,
   UserPlus,
   UserMinus,
@@ -72,6 +73,33 @@ const getNotificationTypeLabel = (type: NotificationType) => {
   return labelMap[type] || 'Thông báo';
 };
 
+const renderNotificationMessage = (notification: Notification) => {
+  const { title, message, relatedUserName, relatedProjectName, relatedProjectId } = notification;
+
+  if (relatedUserName && relatedProjectName && relatedProjectId) {
+    return (
+      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+        <strong>{relatedUserName}</strong> {message}{' '}
+        <Link to={`/projects/${relatedProjectId}`} className="font-semibold text-blue-600 hover:underline">
+          {relatedProjectName}
+        </Link>
+        .
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <h4 className={`text-sm font-medium mb-1 ${!notification.isRead ? 'font-semibold' : ''}`}>
+        {title}
+      </h4>
+      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+        {message}
+      </p>
+    </>
+  );
+};
+
 export const NotificationItem: React.FC<NotificationItemProps> = React.memo(({
   notification,
   onMarkAsRead,
@@ -100,7 +128,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = React.memo(({
   };
 
   return (
-    <Card 
+    <Card
       className={`p-4 cursor-pointer transition-colors hover:bg-muted/50 ${
         !notification.isRead ? 'bg-blue-50/50 border-blue-200' : ''
       }`}
@@ -123,15 +151,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = React.memo(({
             )}
           </div>
           
-          <h4 className={`text-sm font-medium mb-1 ${
-            !notification.isRead ? 'font-semibold' : ''
-          }`}>
-            {notification.title}
-          </h4>
-          
-          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-            {notification.message}
-          </p>
+          {renderNotificationMessage(notification)}
           
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
