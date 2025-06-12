@@ -213,7 +213,7 @@ export const WorkLogForm: React.FC<WorkLogFormProps> = ({
                     <FormControl>
                       <Input
                         type="number"
-                        step="0.5"
+                        step="any"
                         min="0.1"
                         max="24"
                         placeholder="8"

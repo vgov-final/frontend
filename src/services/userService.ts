@@ -8,7 +8,8 @@ import {
   UserSearchParams,
   UserRole,
   ChangePasswordRequest,
-  UserWorkload
+  UserWorkload,
+  ProjectManagerWithWorkload
 } from '@/types/api';
 
 class UserService {
@@ -128,6 +129,16 @@ class UserService {
       return response.data;
     } catch (error) {
       console.error('Get user roles failed:', error);
+      throw error;
+    }
+  }
+
+  async getProjectManagers(): Promise<ProjectManagerWithWorkload[]> {
+    try {
+      const response = await apiService.get<ProjectManagerWithWorkload[]>('/api/users/pms');
+      return response.data;
+    } catch (error) {
+      console.error('Get project managers failed:', error);
       throw error;
     }
   }

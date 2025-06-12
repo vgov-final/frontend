@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { projectService } from '@/services';
-import { CreateProjectRequest, ProjectStatus, ProjectType } from '@/types/api';
+import { projectService, userService } from '@/services';
+import { CreateProjectRequest, ProjectStatus, ProjectType, ProjectManagerWithWorkload } from '@/types/api';
 
 interface CreateProjectFormProps {
     open: boolean;
@@ -19,6 +19,25 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
     onOpenChange,
     onSuccess
 }) => {
+    const [projectManagers, setProjectManagers] = useState<ProjectManagerWithWorkload[]>([]);
+    const [loadingPMs, setLoadingPMs] = useState(false);
+    
+    useEffect(() => {
+        const fetchProjectManagers = async () => {
+            try {
+                setLoadingPMs(true);
+                const data = await userService.getProjectManagers();
+                setProjectManagers(data);
+            } catch (error) {
+                console.error("Failed to load project managers:", error);
+            } finally {
+                setLoadingPMs(false);
+            }
+        };
+        
+        fetchProjectManagers();
+    }, []);
+    
     const [formData, setFormData] = useState<CreateProjectRequest>({
         projectCode: '',
         projectName: '',
@@ -164,14 +183,68 @@ const CreateProjectForm: React.FC<CreateProjectFormProps> = ({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="pmEmail">Email PM *</Label>
-                        <Input
-                            id="pmEmail"
-                            type="email"
+                        <Label htmlFor="pmEmail">Project Manager *</Label>
+                        <Select
                             value={formData.pmEmail}
-                            onChange={(e) => handleInputChange('pmEmail', e.target.value)}
-                            placeholder="Nhập email của Project Manager"
-                        />
+                            onValueChange={(value) => handleInputChange('pmEmail', value)}
+                            disabled={loadingPMs}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue 
+                                    placeholder={loadingPMs ? "Đang tải danh sách PM..." : "Chọn Project Manager"}
+                                    className="truncate"
+                                >
+                                    {formData.pmEmail && projectManagers.find(pm => pm.email === formData.pmEmail) && (
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">
+                                                {projectManagers.find(pm => pm.email === formData.pmEmail)?.fullName}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                                {formData.pmEmail}
+                                            </span>
+                                        </div>
+                                    )}
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {projectManagers.map((pm) => (
+                                    <SelectItem 
+                                        key={pm.id} 
+                                        value={pm.email}
+                                        className="flex flex-col items-start py-2"
+                                    >
+                                        <div className="flex flex-col">
+                                            <div className="font-medium">{pm.fullName}</div>
+                                            <div className="text-xs text-muted-foreground">{pm.email}</div>
+                                            <div className="flex items-center mt-1">
+                                                <span className="text-xs mr-2">
+                                                    {pm.activeProjectCount} dự án
+                                                </span>
+                                                <div className="flex items-center">
+                                                    <span 
+                                                        className={`inline-block h-2 w-2 rounded-full mr-1 ${
+                                                            pm.totalWorkload > 75 ? 'bg-red-500' : 'bg-green-500'
+                                                        }`}
+                                                    ></span>
+                                                    <span 
+                                                        className={`text-xs ${
+                                                            pm.totalWorkload > 75 ? 'text-red-500' : 'text-green-500'
+                                                        }`}
+                                                    >
+                                                        {pm.totalWorkload}% workload
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                                {projectManagers.length === 0 && !loadingPMs && (
+                                    <div className="py-2 text-center text-sm text-gray-500">
+                                        Không tìm thấy Project Manager nào
+                                    </div>
+                                )}
+                            </SelectContent>
+                        </Select>
                         {errors.pmEmail && <p className="text-sm text-red-600">{errors.pmEmail}</p>}
                     </div>
 

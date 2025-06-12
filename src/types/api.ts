@@ -61,6 +61,15 @@ export interface UserWorkload {
   isOverloaded: boolean;
 }
 
+// Project Manager List with Workload
+export interface ProjectManagerWithWorkload {
+  id: number;
+  fullName: string;
+  email: string;
+  activeProjectCount: number;
+  totalWorkload: number;
+}
+
 export interface UserRole {
   id: string;
   name: string;
