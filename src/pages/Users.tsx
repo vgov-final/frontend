@@ -10,9 +10,12 @@ import { User, UserRole, PagedResponse, UserSearchParams } from '@/types/api';
 import CreateUserForm from '@/components/users/CreateUserForm';
 import EditUserForm from '@/components/users/EditUserForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/components/ThemeProvider';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const Users = () => {
   const { user: currentUser } = useAuth();
+  const { theme } = useTheme();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +28,27 @@ const Users = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
   const pageSize = 12;
+
+  useEffect(() => {
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      setResolvedTheme(systemTheme);
+    } else {
+      setResolvedTheme(theme);
+    }
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (theme === 'system') {
+        setResolvedTheme(e.matches ? 'dark' : 'light');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [theme]);
 
   useEffect(() => {
     fetchUsers();
@@ -231,11 +254,10 @@ const Users = () => {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-medium">
-                          {user.fullName.charAt(0)}
-                        </span>
-                      </div>
+                      <Avatar>
+                        <AvatarImage src={resolvedTheme === 'dark' ? '/user-white.svg' : '/user-dark.svg'} alt={user.fullName} />
+                        <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
+                      </Avatar>
                       <div>
                         <div className="font-medium">{user.fullName}</div>
                         <div className="text-sm text-muted-foreground">{user.employeeCode}</div>
