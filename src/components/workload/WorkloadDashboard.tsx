@@ -159,7 +159,7 @@ export function WorkloadDashboard() {
   return (
     <div className="space-y-6">
       {/* Key Metrics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tổng Thành Viên</CardTitle>
@@ -202,27 +202,10 @@ export function WorkloadDashboard() {
               <Skeleton className="h-8 w-16" />
             ) : (
               <div className="text-2xl font-bold">
-                {analytics?.averageWorkload?.toFixed(1) || 0}%
+                {analytics?.averageWorkload?.toFixed(2) || 0}%
               </div>
             )}
             <p className="text-xs text-muted-foreground">Trung bình của nhóm</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Workload Toàn Hệ Thống</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {analyticsLoading ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <div className="text-2xl font-bold">
-                {analytics?.capacityUtilization?.toFixed(1) || 0}%
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">Tỷ lệ sử dụng tổng thể</p>
           </CardContent>
         </Card>
       </div>
@@ -240,28 +223,22 @@ export function WorkloadDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-3">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">
-                  {analytics.systemUtilization.totalCapacity}%
+                  {analytics.systemUtilization.totalCapacity.toFixed(2)}%
                 </div>
                 <div className="text-sm text-blue-600">Total Workload</div>
               </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
-                  {analytics.systemUtilization.usedCapacity}%
+                  {analytics.systemUtilization.usedCapacity.toFixed(2)}%
                 </div>
                 <div className="text-sm text-green-600">Workload Hiện Tại</div>
               </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">
-                  {analytics.systemUtilization.utilizationPercentage.toFixed(1)}%
-                </div>
-                <div className="text-sm text-yellow-600">Hiện Tại</div>
-              </div>
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <div className="text-2xl font-bold text-gray-600">
-                  {analytics.systemUtilization.availableCapacity}%
+                  {analytics.systemUtilization.availableCapacity.toFixed(2)}%
                 </div>
                 <div className="text-sm text-gray-600">Sẵn Sàng</div>
               </div>
@@ -269,7 +246,7 @@ export function WorkloadDashboard() {
             <div className="mt-4">
               <div className="flex items-center justify-between text-sm mb-2">
                 <span>% Workload</span>
-                <span className="font-medium">{analytics.systemUtilization.utilizationPercentage.toFixed(1)}%</span>
+                <span className="font-medium">{analytics.systemUtilization.utilizationPercentage.toFixed(2)}%</span>
               </div>
               <Progress value={analytics.systemUtilization.utilizationPercentage} className="h-3" />
             </div>
@@ -302,7 +279,7 @@ export function WorkloadDashboard() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Khối lượng TB</span>
-                      <span className="font-medium">{stats.averageWorkload.toFixed(1)}%</span>
+                      <span className="font-medium">{stats.averageWorkload.toFixed(2)}%</span>
                     </div>
                     <Progress value={stats.averageWorkload} className="h-2" />
                     {stats.overloadedCount > 0 && (

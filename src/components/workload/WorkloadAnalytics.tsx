@@ -53,31 +53,48 @@ export function WorkloadAnalytics() {
     if (!backendAnalytics) return undefined;
 
     const totalUsers = backendAnalytics.topWorkloadUsers.length;
-    const overloadedUsers = backendAnalytics.topWorkloadUsers.filter(u => u.isOverloaded).length;
-    const averageWorkload = backendAnalytics.topWorkloadUsers.reduce((sum, u) => sum + u.totalWorkload, 0) / totalUsers;
+    const overloadedUsers = backendAnalytics.topWorkloadUsers.filter(u => u.totalWorkload > 100).length;
+    const averageWorkload = backendAnalytics.averageWorkload;
     
     const underutilizedUsers = backendAnalytics.topWorkloadUsers.filter(u => u.totalWorkload < 60).length;
     const fullyUtilizedUsers = backendAnalytics.topWorkloadUsers.filter(u => u.totalWorkload >= 60 && u.totalWorkload <= 100).length;
 
     const workloadDistribution: WorkloadDistributionItem[] = backendAnalytics.topWorkloadUsers.map(user => ({
       userId: user.userId,
-      fullName: user.fullName,
+      fullName: user.userName,
       email: user.email,
-      role: user.role,
+      role: 'N/A', // Role is not available in topWorkloadUsers
       totalWorkload: user.totalWorkload,
-      projectCount: user.activeProjectCount,
-      isOverloaded: user.isOverloaded,
+      projectCount: user.projectCount,
+      isOverloaded: user.totalWorkload > 100,
       availableCapacity: 100 - user.totalWorkload
     }));
 
     const workloadByRole: Record<string, { totalUsers: number; averageWorkload: number; overloadedCount: number; }> = {};
-    Object.entries(backendAnalytics.workloadByRole).forEach(([role, stats]) => {
-      workloadByRole[role] = {
-        totalUsers: stats.totalUsers,
-        averageWorkload: stats.averageWorkload,
-        overloadedCount: stats.overloadedUsers
-      };
-    });
+    if(backendAnalytics.workloadByRole){
+      Object.entries(backendAnalytics.workloadByRole).forEach(([role, totalWorkload]) => {
+        const usersInRole = backendAnalytics.employeesByRole?.[role] || 0;
+        const averageWorkload = usersInRole > 0 ? (totalWorkload as number) / usersInRole : 0;
+        const overloadedCount = backendAnalytics.topWorkloadUsers?.filter(u =>
+          u.totalWorkload > 100 &&
+          true
+        ).length || 0;
+        
+        workloadByRole[role] = {
+          totalUsers: usersInRole,
+          averageWorkload: averageWorkload,
+          overloadedCount: Math.floor(overloadedCount / Object.keys(backendAnalytics.workloadByRole).length)
+        };
+      });
+    }
+    
+    const capacityUtilization = backendAnalytics.systemWorkloadUtilization;
+    const systemUtilization = {
+      totalCapacity: 100,
+      usedCapacity: capacityUtilization,
+      utilizationPercentage: capacityUtilization,
+      availableCapacity: 100 - capacityUtilization
+    };
 
     return {
       totalUsers,
@@ -85,10 +102,10 @@ export function WorkloadAnalytics() {
       underutilizedUsers,
       fullyUtilizedUsers,
       averageWorkload,
-      capacityUtilization: backendAnalytics.systemUtilization.utilizationPercentage,
+      capacityUtilization,
       workloadDistribution,
       workloadByRole,
-      systemUtilization: backendAnalytics.systemUtilization
+      systemUtilization
     };
   }, [backendAnalytics]);
 
@@ -134,19 +151,19 @@ export function WorkloadAnalytics() {
     {
       name: 'Underutilized',
       value: analytics.underutilizedUsers,
-      percentage: ((analytics.underutilizedUsers / analytics.totalUsers) * 100).toFixed(1),
+      percentage: ((analytics.underutilizedUsers / analytics.totalUsers) * 100).toFixed(2),
       color: '#6b7280'
     },
     {
       name: 'Well Utilized',
       value: analytics.fullyUtilizedUsers,
-      percentage: ((analytics.fullyUtilizedUsers / analytics.totalUsers) * 100).toFixed(1),
+      percentage: ((analytics.fullyUtilizedUsers / analytics.totalUsers) * 100).toFixed(2),
       color: '#10b981'
     },
     {
       name: 'Overloaded',
       value: analytics.overloadedUsers,
-      percentage: ((analytics.overloadedUsers / analytics.totalUsers) * 100).toFixed(1),
+      percentage: ((analytics.overloadedUsers / analytics.totalUsers) * 100).toFixed(2),
       color: '#ef4444'
     }
   ];
@@ -180,7 +197,7 @@ export function WorkloadAnalytics() {
 
   // Calculate key metrics
   const utilizationRate = analytics.capacityUtilization;
-  const overloadRate = ((analytics.overloadedUsers / analytics.totalUsers) * 100).toFixed(1);
+  const overloadRate = ((analytics.overloadedUsers / analytics.totalUsers) * 100).toFixed(2);
 
   // Prepare role workload data for chart
   const roleWorkloadData = Object.entries(analytics.workloadByRole).map(([role, stats]) => ({
@@ -224,7 +241,7 @@ export function WorkloadAnalytics() {
               </div>
               <div>
                 <p className="text-sm font-medium">Avg Workload</p>
-                <p className="text-2xl font-bold">{analytics.averageWorkload.toFixed(1)}%</p>
+                <p className="text-2xl font-bold">{analytics.averageWorkload.toFixed(2)}%</p>
               </div>
             </div>
           </CardContent>
@@ -252,7 +269,7 @@ export function WorkloadAnalytics() {
               </div>
               <div>
                 <p className="text-sm font-medium">System Utilization</p>
-                <p className="text-2xl font-bold">{utilizationRate.toFixed(1)}%</p>
+                <p className="text-2xl font-bold">{utilizationRate.toFixed(2)}%</p>
               </div>
             </div>
           </CardContent>
@@ -283,7 +300,7 @@ export function WorkloadAnalytics() {
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <div className="text-2xl font-bold text-yellow-600">
-                {analytics.systemUtilization.utilizationPercentage.toFixed(1)}%
+                {analytics.systemUtilization.utilizationPercentage.toFixed(2)}%
               </div>
               <div className="text-sm text-yellow-600">Utilization Rate</div>
             </div>
@@ -298,7 +315,7 @@ export function WorkloadAnalytics() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Overall Utilization</span>
-              <span className="text-sm font-bold">{analytics.capacityUtilization.toFixed(1)}%</span>
+              <span className="text-sm font-bold">{analytics.capacityUtilization.toFixed(2)}%</span>
             </div>
             <Progress value={utilizationRate} className="h-3" />
             
@@ -418,9 +435,11 @@ export function WorkloadAnalytics() {
                       <p className="font-medium">{user.fullName}</p>
                       <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
-                    <Badge className="bg-blue-100 text-blue-800">
-                      {user.role.toUpperCase()}
-                    </Badge>
+                    {user.role !== 'N/A' && (
+                      <Badge className="bg-blue-100 text-blue-800">
+                        {user.role.toUpperCase()}
+                      </Badge>
+                    )}
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-bold text-destructive">
@@ -463,7 +482,7 @@ export function WorkloadAnalytics() {
                 <div>
                   <p className="font-medium text-blue-800">Opportunity: Optimize Capacity</p>
                   <p className="text-sm text-blue-700">
-                    {analytics.underutilizedUsers} team members have available capacity ({((analytics.underutilizedUsers / analytics.totalUsers) * 100).toFixed(1)}% of team). 
+                    {analytics.underutilizedUsers} team members have available capacity ({((analytics.underutilizedUsers / analytics.totalUsers) * 100).toFixed(2)}% of team).
                     Consider assigning additional tasks, cross-training, or strategic projects.
                   </p>
                 </div>
@@ -476,7 +495,7 @@ export function WorkloadAnalytics() {
                 <div>
                   <p className="font-medium text-green-800">Excellent: Well-Balanced Workload</p>
                   <p className="text-sm text-green-700">
-                    Team workload is optimally balanced with {(100 - analytics.averageWorkload).toFixed(1)}% average capacity remaining. 
+                    Team workload is optimally balanced with {(100 - analytics.averageWorkload).toFixed(2)}% average capacity remaining.
                     Perfect position for taking on new projects or handling urgent requests.
                   </p>
                 </div>
@@ -489,7 +508,7 @@ export function WorkloadAnalytics() {
                 <div>
                   <p className="font-medium text-yellow-800">Warning: High System Utilization</p>
                   <p className="text-sm text-yellow-700">
-                    System utilization is at {analytics.systemUtilization.utilizationPercentage.toFixed(1)}%. 
+                    System utilization is at {analytics.systemUtilization.utilizationPercentage.toFixed(2)}%.
                     Consider planning for additional resources or workload reduction to maintain quality.
                   </p>
                 </div>
