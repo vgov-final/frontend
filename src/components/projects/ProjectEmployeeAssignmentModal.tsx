@@ -51,8 +51,9 @@ const ProjectEmployeeAssignmentModal: React.FC<ProjectEmployeeAssignmentModalPro
     const fetchEmployees = async () => {
         try {
             setLoading(true);
-            const response = await userService.getUsers({ page: 0, size: 100 });
-            setEmployees(response.content);
+            const response = await userService.getUsers({ page: 0, size: 1000 }); // Fetch more users
+            const filtered = response.content.filter(user => user.role !== 'admin');
+            setEmployees(filtered);
         } catch (error) {
             console.error('Error fetching employees:', error);
             setError('Không thể tải danh sách nhân viên');
@@ -92,11 +93,13 @@ const ProjectEmployeeAssignmentModal: React.FC<ProjectEmployeeAssignmentModalPro
         }
     };
 
-    const filteredEmployees = employees.filter(employee =>
-        employee?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee?.employeeCode?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredEmployees = employees
+        .filter(employee => employee.role !== 'admin')
+        .filter(employee =>
+            employee?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            employee?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            employee?.employeeCode?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
     const isEmployeeAssigned = (employeeId: number) => {
         return assignedEmployees.some(emp => emp.id === employeeId);
