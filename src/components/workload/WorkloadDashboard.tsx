@@ -158,14 +158,6 @@ export function WorkloadDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Thông Tin Workload</h1>
-        <p className="text-muted-foreground">
-          Khối lượng công việc
-        </p>
-      </div>
-
       {/* Key Metrics Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>

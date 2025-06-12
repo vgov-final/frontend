@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -12,21 +11,16 @@ import {
   Filter,
   Download,
   RefreshCw,
-  BarChart3
 } from 'lucide-react';
 
 // Import workload components
 import { WorkloadDashboard } from '@/components/workload/WorkloadDashboard';
-import { WorkloadChart } from '@/components/workload/WorkloadChart';
-import { WorkloadAnalytics } from '@/components/workload/WorkloadAnalytics';
-import { WorkloadValidation } from '@/components/workload/WorkloadValidation';
 
 // Import workload service
 import { workloadService } from '@/services/workloadService';
 
 const WorkloadPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Fetch workload analytics for quick actions
   const { 
@@ -79,9 +73,6 @@ const WorkloadPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Quản Lý Workload</h1>
-          <p className="text-muted-foreground">
-            Chỉ số khôi lượng công việc của nhân viên
-          </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -145,58 +136,10 @@ const WorkloadPage: React.FC = () => {
       )}
 
       {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="dashboard" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Dashboard
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analytics
-          </TabsTrigger>
-          <TabsTrigger value="validation" className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            Validation
-          </TabsTrigger>
-          <TabsTrigger value="charts" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Charts
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Dashboard Tab - Main workload overview */}
-        <TabsContent value="dashboard" className="space-y-6">
-          <WorkloadDashboard />
-        </TabsContent>
-
-        {/* Analytics Tab - Detailed analytics */}
-        <TabsContent value="analytics" className="space-y-6">
-          <WorkloadAnalytics />
-        </TabsContent>
-
-        {/* Validation Tab - Workload validation tools */}
-        <TabsContent value="validation" className="space-y-6">
-          <div className="grid gap-6">
-            <Card>
-              <CardContent className="pt-6">
-                <WorkloadValidation userId={1} />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Charts Tab - Visual representations */}
-        <TabsContent value="charts" className="space-y-6">
-          <div className="grid gap-6">
-            <Card>
-              <CardContent className="pt-6">
-                <WorkloadChart />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+      {/* Main Content */}
+      <div className="space-y-6">
+        <WorkloadDashboard />
+      </div>
     </div>
   );
 };
