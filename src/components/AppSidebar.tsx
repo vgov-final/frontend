@@ -61,16 +61,12 @@ export function AppSidebar() {
     <Sidebar className="border-r bg-sidebar">
       <SidebarHeader className="p-4">
         <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="w-5 h-5 text-white" />
-            </div>
-          </div>
-          {!isCollapsed && (
+            <img src="/logo.png" alt="V-GOV Logo" className="h-8 w-auto" />
+            {!isCollapsed && (
             <div className="ml-3">
-              <h1 className="text-xl font-bold text-sidebar-foreground">V-GOV</h1>
+                <h1 className="text-xl font-bold text-sidebar-foreground">V-GOV</h1>
             </div>
-          )}
+            )}
         </div>
       </SidebarHeader>
 
