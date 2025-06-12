@@ -49,6 +49,7 @@ class ProjectService {
         pmEmail: item.pmEmail,
         startDate: item.startDate,
         endDate: item.endDate,
+        actualClosedDate: item.actualClosedDate,
         projectType: item.projectType,
         status: item.status,
         description: item.description,

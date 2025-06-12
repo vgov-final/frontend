@@ -277,10 +277,10 @@ const Projects = () => {
                         </Button>
                         {user?.role !== 'pm' && (
                           <>
-                            <Button variant="ghost" size="sm" onClick={() => handleAssignEmployees(project)} title="Phân công nhân viên">
+                            <Button variant="ghost" size="sm" onClick={() => handleAssignEmployees(project)} title="Phân công nhân viên" disabled={project.status === ProjectStatus.Closed}>
                               <UserPlus className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleEditProject(project)} title="Chỉnh sửa">
+                            <Button variant="ghost" size="sm" onClick={() => handleEditProject(project)} title="Chỉnh sửa" disabled={project.status === ProjectStatus.Closed}>
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button
@@ -289,6 +289,7 @@ const Projects = () => {
                               className="text-red-600 hover:text-red-700"
                               onClick={() => handleDeleteProject(project)}
                               title="Xóa"
+                              disabled={project.status === ProjectStatus.Closed}
                             >
                               <Trash className="w-4 h-4" />
                             </Button>

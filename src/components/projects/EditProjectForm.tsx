@@ -34,23 +34,24 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
     });
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-    useEffect(() => {
-        if (open && project) {
-            setFormData({
-                projectCode: project.projectCode,
-                projectName: project.projectName,
-                pmEmail: project.pmEmail,
-                description: project.description || '',
-                startDate: project.startDate || '',
-                endDate: project.endDate || '',
-                status: project.status,
-                projectType: project.projectType,
-                budget: 0
-            });
-            setErrors({});
-        }
-    }, [open, project]);
+    const isClosed = project?.status === ProjectStatus.Closed;
+ 
+     useEffect(() => {
+         if (open && project) {
+             setFormData({
+                 projectCode: project.projectCode,
+                 projectName: project.projectName,
+                 pmEmail: project.pmEmail,
+                 description: project.description || '',
+                 startDate: project.startDate || '',
+                 endDate: project.endDate || '',
+                 status: project.status,
+                 projectType: project.projectType,
+                 budget: 0
+             });
+             setErrors({});
+         }
+     }, [open, project]);
 
     const validateForm = (): boolean => {
         const newErrors: { [key: string]: string } = {};
@@ -143,8 +144,11 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle>Chỉnh sửa dự án</DialogTitle>
+                    {isClosed && (
+                        <p className="text-sm text-red-600">Dự án đã đóng không thể chỉnh sửa.</p>
+                    )}
                 </DialogHeader>
-
+ 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -154,6 +158,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                                 value={formData.projectCode}
                                 onChange={(e) => handleInputChange('projectCode', e.target.value)}
                                 placeholder="Nhập mã dự án"
+                                disabled={isClosed}
                             />
                             {errors.projectCode && <p className="text-sm text-red-600">{errors.projectCode}</p>}
                         </div>
@@ -178,6 +183,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                             value={formData.projectName}
                             onChange={(e) => handleInputChange('projectName', e.target.value)}
                             placeholder="Nhập tên dự án"
+                            disabled={isClosed}
                         />
                         {errors.projectName && <p className="text-sm text-red-600">{errors.projectName}</p>}
                     </div>
@@ -190,6 +196,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                             onChange={(e) => handleInputChange('description', e.target.value)}
                             placeholder="Nhập mô tả dự án"
                             rows={3}
+                            disabled={isClosed}
                         />
                         {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
                     </div>
@@ -202,6 +209,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                                 type="date"
                                 value={formData.startDate}
                                 onChange={(e) => handleInputChange('startDate', e.target.value)}
+                                disabled={isClosed}
                             />
                             {errors.startDate && <p className="text-sm text-red-600">{errors.startDate}</p>}
                         </div>
@@ -213,6 +221,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                                 type="date"
                                 value={formData.endDate}
                                 onChange={(e) => handleInputChange('endDate', e.target.value)}
+                                disabled={isClosed}
                             />
                             {errors.endDate && <p className="text-sm text-red-600">{errors.endDate}</p>}
                         </div>
@@ -224,6 +233,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                             <Select
                                 value={formData.status}
                                 onValueChange={(value) => handleInputChange('status', value as ProjectStatus)}
+                                disabled={isClosed}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Chọn trạng thái" />
@@ -243,6 +253,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                             <Select
                                 value={formData.projectType}
                                 onValueChange={(value) => handleInputChange('projectType', value as ProjectType)}
+                                disabled={isClosed}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Chọn loại dự án" />
@@ -266,6 +277,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                             value={formData.budget}
                             onChange={(e) => handleInputChange('budget', parseFloat(e.target.value) || 0)}
                             placeholder="Nhập ngân sách"
+                            disabled={isClosed}
                         />
                         {errors.budget && <p className="text-sm text-red-600">{errors.budget}</p>}
                     </div>
@@ -289,7 +301,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                     <Button
                         type="button"
                         onClick={handleSubmit}
-                        disabled={loading}
+                        disabled={loading || isClosed}
                     >
                         {loading ? 'Đang cập nhật...' : 'Cập nhật'}
                     </Button>

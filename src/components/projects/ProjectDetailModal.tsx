@@ -259,8 +259,16 @@ const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
                     {project.endDate && (
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm font-medium">Ngày kết thúc:</span>
+                        <span className="text-sm font-medium">Ngày kết thúc dự kiến:</span>
                         <span className="text-sm">{formatDate(project.endDate)}</span>
+                      </div>
+                    )}
+
+                    {project.actualClosedDate && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-green-500" />
+                        <span className="text-sm font-medium">Ngày đóng thực tế:</span>
+                        <span className="text-sm">{formatDate(project.actualClosedDate)}</span>
                       </div>
                     )}
                   </div>

@@ -131,6 +131,7 @@ export interface Project {
   pmEmail: string;
   startDate: string;
   endDate?: string;
+  actualClosedDate?: string; // Ngày đóng thực tế
   projectType: ProjectType;
   status: ProjectStatus; // Backend field name
   description?: string;
