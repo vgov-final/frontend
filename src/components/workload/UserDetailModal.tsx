@@ -26,12 +26,16 @@ import {
   Activity,
   BarChart3,
   FileText,
+  History,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Services
 import { userService } from '@/services/userService';
 import { workloadService } from '@/services/workloadService';
 import { projectService } from '@/services/projectService';
+import { useAuth } from '@/contexts/AuthContext';
+import { WorkloadHistoryModal } from './WorkloadHistoryModal';
 
 // Types
 import { UserProjectHistory } from '@/types/api';
@@ -66,6 +70,10 @@ interface UserWorkloadDetails {
 }
 
 export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProps) {
+  const { user: currentUser } = useAuth();
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = React.useState(false);
+  const [selectedProject, setSelectedProject] = React.useState<{ id: number; name: string } | null>(null);
+
   // Fetch user basic information
   const {
     data: userDetails,
@@ -113,6 +121,11 @@ export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProp
     queryFn: () => projectService.getUserProjectHistory(userId),
     enabled: isOpen && !!userId,
   });
+
+  const handleViewHistoryClick = (project: UserProjectHistory) => {
+    setSelectedProject({ id: project.projectId, name: project.projectName });
+    setIsHistoryModalOpen(true);
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -429,6 +442,16 @@ export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProp
                                 <Badge variant="outline">
                                   {project.workloadPercentage}%
                                 </Badge>
+                                {currentUser?.role === 'admin' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleViewHistoryClick(project)}
+                                  >
+                                    <History className="h-4 w-4 mr-1" />
+                                    Lịch sử
+                                  </Button>
+                                )}
                               </div>
                             </div>
                             <div className="grid gap-2 md:grid-cols-3 text-sm text-muted-foreground">
@@ -618,6 +641,17 @@ export function UserDetailModal({ isOpen, onClose, userId }: UserDetailModalProp
               </TabsContent>
             </Tabs>
           </div>
+        )}
+
+        {selectedProject && userDetails && (
+          <WorkloadHistoryModal
+            isOpen={isHistoryModalOpen}
+            onClose={() => setIsHistoryModalOpen(false)}
+            projectId={selectedProject.id}
+            userId={userId}
+            projectName={selectedProject.name}
+            userName={userDetails.fullName}
+          />
         )}
       </DialogContent>
     </Dialog>

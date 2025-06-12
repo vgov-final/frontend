@@ -7,12 +7,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Folder,
   User,
+  Pencil,
+  Save,
+  X,
   Calendar,
   Mail,
   Code,
@@ -26,7 +31,9 @@ import { toast } from 'sonner';
 
 // Import services and types
 import { projectService } from '@/services/projectService';
+import { workloadValidationService, WorkloadInfo } from '@/services/workloadValidationService';
 import { Project, ProjectMember, ProjectStatus, ProjectType } from '@/types/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProjectDetailModalProps {
   isOpen: boolean;
@@ -43,10 +50,22 @@ const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
   const [members, setMembers] = useState<ProjectMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  // Inline workload editing state
+  const [editingMemberId, setEditingMemberId] = useState<number | null>(null);
+  const [newWorkload, setNewWorkload] = useState<number>(0);
+  const [updateReason, setUpdateReason] = useState('');
+  const [workloadInfo, setWorkloadInfo] = useState<WorkloadInfo | null>(null);
+  const [loadingWorkload, setLoadingWorkload] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (isOpen && projectId) {
       fetchProjectDetails();
+    } else {
+      // Reset state when modal closes
+      setEditingMemberId(null);
     }
   }, [isOpen, projectId]);
 
@@ -121,6 +140,49 @@ const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const handleEditClick = async (member: ProjectMember) => {
+    setEditingMemberId(member.id);
+    setNewWorkload(member.workloadPercentage);
+    setUpdateReason('');
+    setWorkloadInfo(null);
+    setLoadingWorkload(true);
+    try {
+      const info = await workloadValidationService.getUserWorkloadInfo(member.userId);
+      setWorkloadInfo(info);
+    } catch (error) {
+      toast.error("Failed to load user's workload info.");
+    } finally {
+      setLoadingWorkload(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMemberId(null);
+  };
+
+  const handleUpdateWorkload = async (member: ProjectMember) => {
+    if (newWorkload <= 0 || newWorkload > 100) {
+      toast.error('Workload must be between 0.01 and 100.');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await projectService.updateMemberWorkload(projectId, member.userId, {
+        userId: member.userId,
+        workloadPercentage: newWorkload,
+        reason: updateReason,
+      });
+      toast.success('Workload updated successfully!');
+      setEditingMemberId(null);
+      fetchProjectDetails(); // Refresh data
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to update workload.');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -264,14 +326,63 @@ const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <Badge variant="secondary" className="text-xs">
-                            {member.workloadPercentage}%
-                          </Badge>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Tham gia: {formatDate(member.joinedDate)}
+
+                        {editingMemberId === member.id ? (
+                          <div className="flex-grow ml-4">
+                            <div className="space-y-2">
+                              <div>
+                                <Input
+                                  type="number"
+                                  value={newWorkload}
+                                  onChange={(e) => setNewWorkload(Number(e.target.value))}
+                                  className="h-8"
+                                  min="0.01"
+                                  max="100"
+                                  step="0.01"
+                                />
+                                {loadingWorkload ? <p className="text-xs text-gray-500 mt-1">Loading capacity...</p> :
+                                  workloadInfo && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      Available: {workloadInfo.availableCapacity.toFixed(2)}%
+                                    </p>
+                                  )
+                                }
+                              </div>
+                              <Textarea
+                                placeholder="Reason for change (optional)"
+                                value={updateReason}
+                                onChange={(e) => setUpdateReason(e.target.value)}
+                                className="h-16 text-xs"
+                              />
+                              <div className="flex items-center gap-2">
+                                <Button size="sm" onClick={() => handleUpdateWorkload(member)} disabled={isUpdating}>
+                                  <Save className="h-3 w-3 mr-1" />
+                                  {isUpdating ? 'Saving...' : 'Save'}
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
+                                  <X className="h-3 w-3 mr-1" />
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="text-right flex items-center gap-2">
+                            <div>
+                              <Badge variant="secondary" className="text-xs">
+                                {member.workloadPercentage}%
+                              </Badge>
+                              <div className="text-xs text-gray-500 mt-1">
+                                Joined: {formatDate(member.joinedDate)}
+                              </div>
+                            </div>
+                            {user?.role === 'admin' && (
+                              <Button size="icon" variant="ghost" onClick={() => handleEditClick(member)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

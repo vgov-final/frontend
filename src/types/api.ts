@@ -283,3 +283,14 @@ export interface UserProjectHistory {
   leftDate: string | null;
   projectStatus: string;
 }
+
+// Workload History Type
+export interface WorkloadHistory {
+  id: number;
+  projectMemberId: number;
+  oldWorkloadPercentage: number;
+  newWorkloadPercentage: number;
+  reason: string;
+  changedBy: string;
+  changeTimestamp: string;
+}

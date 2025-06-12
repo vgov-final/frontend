@@ -30,6 +30,7 @@ export const API_CONFIG = {
       ADD_MEMBER: (id: number) => `/api/projects/${id}/members`,
       UPDATE_MEMBER: (projectId: number, userId: number) => `/api/projects/${projectId}/members/${userId}`,
       REMOVE_MEMBER: (projectId: number, userId: number) => `/api/projects/${projectId}/members/${userId}`,
+      MEMBER_WORKLOAD_HISTORY: (projectId: number, userId: number) => `/api/projects/${projectId}/members/${userId}/history`,
       USER_HISTORY: (userId: number) => `/api/projects/user-history/${userId}`,
     },
     DASHBOARD: {

@@ -7,12 +7,14 @@ import {
   PagedResponse,
   ProjectSearchParams,
   ProjectMember,
-  UserProjectHistory
+  UserProjectHistory,
+  WorkloadHistory
 } from '@/types/api';
 
 export interface ProjectMemberRequest {
   userId: number;
   workloadPercentage: number;
+  reason?: string;
 }
 
 class ProjectService {
@@ -150,6 +152,16 @@ class ProjectService {
       return response.data;
     } catch (error) {
       console.error(`Update member workload for project ${projectId} failed:`, error);
+      throw error;
+    }
+  }
+
+  async getMemberWorkloadHistory(projectId: number, userId: number): Promise<WorkloadHistory[]> {
+    try {
+      const response = await apiService.get<WorkloadHistory[]>(API_CONFIG.ENDPOINTS.PROJECTS.MEMBER_WORKLOAD_HISTORY(projectId, userId));
+      return response.data;
+    } catch (error) {
+      console.error(`Get member workload history for project ${projectId} failed:`, error);
       throw error;
     }
   }

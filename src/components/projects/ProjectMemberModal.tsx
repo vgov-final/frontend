@@ -10,11 +10,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Users,
   CheckCircle,
+  History,
   XCircle,
   User,
   Percent
@@ -27,7 +30,8 @@ import { AlertTriangle, Info } from 'lucide-react';
 import { projectService } from '@/services/projectService';
 import { workloadValidationService, WorkloadInfo } from '@/services/workloadValidationService';
 import { userService } from '@/services/userService';
-import { ProjectMember, UserWorkload } from '@/types/api';
+import { ProjectMember, UserWorkload, WorkloadHistory } from '@/types/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProjectMemberModalProps {
   isOpen: boolean;
@@ -53,8 +57,12 @@ const ProjectMemberModal: React.FC<ProjectMemberModalProps> = ({
   const [workloadPercentage, setWorkloadPercentage] = useState<number>(
     selectedMember?.workloadPercentage || 100
   );
+  const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState<ProjectMember[]>([]);
+  const [history, setHistory] = useState<WorkloadHistory[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const { user } = useAuth();
   
   // Workload validation state
   const [workloadInfo, setWorkloadInfo] = useState<WorkloadInfo | null>(null);
@@ -83,12 +91,18 @@ const ProjectMemberModal: React.FC<ProjectMemberModalProps> = ({
       if (mode === 'edit' && selectedMember) {
         setUserId(selectedMember.userId);
         setWorkloadPercentage(selectedMember.workloadPercentage);
+        setReason('');
+        if (user?.role === 'admin') {
+          fetchHistory(selectedMember.userId);
+        }
       } else {
         setUserId(0);
         setWorkloadPercentage(100);
+        setReason('');
+        setHistory([]);
       }
     }
-  }, [isOpen, mode, selectedMember]);
+  }, [isOpen, mode, selectedMember, user]);
 
   // Fetch user workload information when userId changes
   useEffect(() => {
@@ -156,6 +170,19 @@ const ProjectMemberModal: React.FC<ProjectMemberModalProps> = ({
     }
   };
 
+  const fetchHistory = async (memberUserId: number) => {
+    setLoadingHistory(true);
+    try {
+      const historyData = await projectService.getMemberWorkloadHistory(projectId, memberUserId);
+      setHistory(historyData);
+    } catch (error) {
+      console.error('Error fetching workload history:', error);
+      toast.error('Failed to load workload history.');
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!userId || workloadPercentage <= 0) {
       toast.error('Please fill in all required fields');
@@ -184,7 +211,8 @@ const ProjectMemberModal: React.FC<ProjectMemberModalProps> = ({
       } else if (mode === 'edit' && selectedMember) {
         await projectService.updateMemberWorkload(projectId, selectedMember.userId, {
           userId: selectedMember.userId,
-          workloadPercentage
+          workloadPercentage,
+          reason: reason || undefined
         });
         toast.success('Member workload updated successfully');
       }
@@ -237,11 +265,22 @@ const ProjectMemberModal: React.FC<ProjectMemberModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* User Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="userId" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
+        <Tabs defaultValue="details" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="details">Member Details</TabsTrigger>
+            {mode === 'edit' && user?.role === 'admin' && (
+              <TabsTrigger value="history">
+                <History className="h-4 w-4 mr-2" />
+                Workload History
+              </TabsTrigger>
+            )}
+          </TabsList>
+
+          <TabsContent value="details" className="space-y-6">
+            {/* User Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="userId" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
               User ID
             </Label>
             <Input
@@ -348,7 +387,68 @@ const ProjectMemberModal: React.FC<ProjectMemberModalProps> = ({
               </Alert>
             )}
           </div>
+          
+            {/* Reason for Change (Edit mode only) */}
+            {mode === 'edit' && (
+              <div className="space-y-2">
+                <Label htmlFor="reason" className="flex items-center gap-2">
+                  Reason for Change (Optional)
+                </Label>
+                <Textarea
+                  id="reason"
+                  placeholder="Enter reason for workload change..."
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  className="min-h-[80px]"
+                />
+              </div>
+            )}
 
+          </TabsContent>
+
+          {mode === 'edit' && user?.role === 'admin' && (
+            <TabsContent value="history">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  Workload Change History
+                </Label>
+                {loadingHistory ? (
+                  <p>Loading history...</p>
+                ) : history.length > 0 ? (
+                  <div className="max-h-64 overflow-y-auto rounded-md border">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="p-2 text-left">Date</th>
+                          <th className="p-2 text-left">Changed By</th>
+                          <th className="p-2 text-left">Change</th>
+                          <th className="p-2 text-left">Reason</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {history.map((entry) => (
+                          <tr key={entry.id} className="border-b">
+                            <td className="p-2">{new Date(entry.changeTimestamp).toLocaleString()}</td>
+                            <td className="p-2">{entry.changedBy}</td>
+                            <td className="p-2">
+                              {entry.oldWorkloadPercentage.toFixed(2)}% → {entry.newWorkloadPercentage.toFixed(2)}%
+                            </td>
+                            <td className="p-2">{entry.reason || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No history found.</p>
+                )}
+              </div>
+            </TabsContent>
+          )}
+        </Tabs>
+
+        <div className="space-y-6">
           <Separator />
 
           {/* Current Project Members */}
