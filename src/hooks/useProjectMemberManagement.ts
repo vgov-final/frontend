@@ -99,7 +99,7 @@ export function useProjectMemberManagement(projectId: number) {
         // Adjust validation to account for replacing existing assignment
         const adjustedTotalWorkload = otherProjectsWorkload + workloadPercentage;
         if (adjustedTotalWorkload > 100) {
-          throw new Error(`Updated workload would exceed 100% (${adjustedTotalWorkload}%)`);
+          throw new Error(`Vượt quá 100% (${adjustedTotalWorkload}%)`);
         }
       }
 

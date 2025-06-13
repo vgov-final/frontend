@@ -111,7 +111,7 @@ const ProjectEmployeeAssignmentModal: React.FC<ProjectEmployeeAssignmentModalPro
             newSelected.add(employeeId);
             // Set default workload and fetch user workload info
             const newWorkloadPercentages = new Map(workloadPercentages);
-            newWorkloadPercentages.set(employeeId, 20); // Default 20%
+            newWorkloadPercentages.set(employeeId, 0); // Default 0%
             setWorkloadPercentages(newWorkloadPercentages);
             
             // Fetch and validate workload
@@ -188,7 +188,7 @@ const ProjectEmployeeAssignmentModal: React.FC<ProjectEmployeeAssignmentModalPro
             
             // Add each selected employee as a project member with specified workload
             for (const userId of employeeIds) {
-                const workload = workloadPercentages.get(userId) || 20;
+                const workload = workloadPercentages.get(userId) || 0;
                 await projectService.addProjectMember(project.id, {
                     userId,
                     workloadPercentage: workload
@@ -298,7 +298,7 @@ const ProjectEmployeeAssignmentModal: React.FC<ProjectEmployeeAssignmentModalPro
                                         .map((employee) => {
                                             const isSelected = selectedEmployeeIds.has(employee.id);
                                             const workloadInfo = workloadInfos.get(employee.id);
-                                            const currentWorkload = workloadPercentages.get(employee.id) || 20;
+                                            const currentWorkload = workloadPercentages.get(employee.id) || 0;
                                             const validationError = validationErrors.get(employee.id);
                                             
                                             return (

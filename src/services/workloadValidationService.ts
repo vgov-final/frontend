@@ -60,7 +60,7 @@ class WorkloadValidationService {
         availableCapacity: workloadInfo.availableCapacity,
         errorMessage: isValid 
           ? undefined 
-          : `Adding ${newWorkloadPercentage}% would exceed 100% capacity. Current: ${workloadInfo.currentWorkload}%, Available: ${workloadInfo.availableCapacity}%`
+          : `Thêm ${newWorkloadPercentage}% sẽ vượt quá 100% tối đa. Hiện tại: ${workloadInfo.currentWorkload}%, Sẵn sàng: ${workloadInfo.availableCapacity}%`
       };
     } catch (error) {
       console.error('Workload validation failed:', error);

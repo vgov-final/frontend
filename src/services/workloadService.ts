@@ -255,10 +255,10 @@ class WorkloadService {
       
       if (totalAfterAssignment > 100) {
         isValid = false;
-        message = `Assignment would exceed capacity. User currently has ${userWorkload.totalWorkload}% workload, adding ${percentage}% would result in ${totalAfterAssignment}% (${totalAfterAssignment - 100}% over capacity).`;
+        message = `Vượt quá cho phép. Hiện tại có ${userWorkload.totalWorkload}% workload, thêm ${percentage}% sẽ thành ${totalAfterAssignment}% (${totalAfterAssignment - 100}% vượt ngưỡng).`;
         severity = 'error';
       } else if (totalAfterAssignment >= 90) {
-        message = `High workload warning. User will have ${totalAfterAssignment}% workload after assignment.`;
+        message = `Workload cao. Tổng sẽ là ${totalAfterAssignment}%.`;
         severity = 'warning';
       } else {
         message = `Assignment is valid. User will have ${totalAfterAssignment}% workload with ${100 - totalAfterAssignment}% remaining capacity.`;
